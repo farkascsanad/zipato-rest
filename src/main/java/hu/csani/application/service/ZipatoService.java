@@ -321,8 +321,13 @@ public class ZipatoService {
 		Gson gson = new Gson();
 
 		Attribute[] mcArray = gson.fromJson(rawResponse.getResponse(), Attribute[].class);
+		
+		List<Attribute> attributeList = Arrays.asList(mcArray);
 
-		for (Attribute attribute : mcArray) {
+		for (Attribute attribute : attributeList) {
+			if(isRelevantAttribute(attribute)) {
+				continue;
+			}
 			HttpZipatoResponse attributeResponse = httpGET("https://my.zipato.com:443/zipato-web/v2/attributes/"
 					+ attribute.getUuid()
 					+ "?network=false&device=true&endpoint=false&clusterEndpoint=false&definition=false&config=false&room=false&icons=false&value=true&parent=false&children=false&full=false&type=false",
@@ -332,13 +337,22 @@ public class ZipatoService {
 
 		}
 
-		for (Attribute attirbute : mcArray) {
-			Device device = devices.get(attirbute.getDevice());
-			if (device != null)
-				device.getDeviceAttributes().add(attirbute);
+		for (Attribute attirbute : attributeList) {
+			if (attirbute.getDevice() != null) {
+				Device device = devices.get(attirbute.getDevice().getUuid());
+				if (device != null)
+					device.getDeviceAttributes().add(attirbute);
+			}
 		}
 
-		return Arrays.asList(mcArray);
+		return attributeList;
+	}
+
+	private boolean isRelevantAttribute(Attribute attribute) {
+		if(attribute.getName().equals("LEVEL")) {  // Shutters
+			return true;
+		}
+		return false;
 	}
 
 }
