@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import hu.csani.application.model.dao.DeviceEntity;
+import hu.csani.application.model.zipato.Device;
 import hu.csani.application.service.ZipatoService;
 
 @RestController
@@ -28,7 +29,7 @@ public class DeviceController {
 	}
 	
 	@RequestMapping(value = "/shutters", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<DeviceEntity> getShutters() throws IOException, LoginException {
+	public List<Device> getShutters() throws IOException, LoginException {
 
 		return zipato.getDevicesByType("actuator.shutters");
 	}

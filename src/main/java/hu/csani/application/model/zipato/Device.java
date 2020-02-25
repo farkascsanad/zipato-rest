@@ -34,11 +34,23 @@ public class Device {
 	private String description;
 	@SerializedName("room")
 	@Expose
-	private Integer room;
+	private Object room;
 	@SerializedName("tags")
 	@Expose
 	private List<String> tags = null;
-
+	@SerializedName("icon")
+	@Expose
+	private Icon icon;
+	@SerializedName("showIcon")
+	@Expose
+	private Boolean showIcon;
+	@SerializedName("templateId")
+	@Expose
+	private String templateId;
+	@SerializedName("userIcon")
+	@Expose
+	private Object userIcon;
+	
 	@SerializedName("device_attributes")
 	@Expose
 	private List<Attribute> deviceAttributes = new ArrayList<>();

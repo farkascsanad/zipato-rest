@@ -36,7 +36,7 @@ public class BasicController {
 	}
 
 	@RequestMapping(value = "/force-auth", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String setAccount() throws IOException {
+	public String setAccount() throws IOException, LoginException {
 
 		return zipato.generateAuthHeader();
 

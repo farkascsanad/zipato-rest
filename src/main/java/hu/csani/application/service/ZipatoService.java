@@ -39,7 +39,6 @@ import hu.csani.application.model.dao.DeviceEntity;
 import hu.csani.application.model.http.HttpZipatoResponse;
 import hu.csani.application.model.zipato.Attribute;
 import hu.csani.application.model.zipato.Device;
-import hu.csani.application.model.zipato.DeviceDetails;
 import hu.csani.application.model.zipato.ZipatoResponse;
 import hu.csani.application.schedule.Scheduler;
 import lombok.AccessLevel;
@@ -63,7 +62,6 @@ public class ZipatoService {
 	private ZipatoResponse login;
 
 	private Map<String, Device> devices;
-	private Map<String, DeviceDetails> devicesDetails;
 
 	private Map<String, DeviceEntity> deviceEntitys;
 
@@ -72,7 +70,7 @@ public class ZipatoService {
 	@Autowired
 	HttpService httpService;
 
-	public String generateAuthHeader() throws IOException {
+	public String generateAuthHeader() throws IOException, LoginException {
 		HttpZipatoResponse initResponse = httpService.httpGET("https://my.zipato.com/zipato-web/v2/user/init");
 
 		Gson gson = new Gson();
@@ -84,9 +82,12 @@ public class ZipatoService {
 				initResponse.getCookies());
 		login = gson.fromJson(loginResponse.getResponse(), ZipatoResponse.class);
 
-		authenticatedHeader = loginResponse;
-
-		return authenticatedHeader.toString();
+		if (login.getSuccess()) {
+			authenticatedHeader = loginResponse;
+			return login.toString();
+		} else {
+			throw new LoginException(loginResponse.toString());
+		}
 
 	}
 
@@ -208,38 +209,47 @@ public class ZipatoService {
 		}
 
 		deviceEntitys = new HashMap<>();
-		for (Device device : mcArray) {
+		for (Device device : devices.values()) {
 			HttpZipatoResponse deviceResponse = httpService.httpGET("https://my.zipato.com:443/zipato-web/v2/devices/"
 					+ device.getUuid()
 					+ "?network=false&endpoints=false&type=false&config=false&state=false&icons=true&info=false&descriptor=false&room=true&unsupported=false",
 					authenticatedHeader.getCookies());
-			DeviceDetails deviceDetails = gson.fromJson(deviceResponse.getResponse(), DeviceDetails.class);
+			Device deviceDetails = gson.fromJson(deviceResponse.getResponse(), Device.class);
 
-//			devicesDetails.put(device.getUuid(), deviceDetails);
+			device = gson.fromJson(deviceResponse.getResponse(), Device.class);
+
+			// devicesDetails.put(device.getUuid(), deviceDetails);
 
 			DeviceEntity deviceEntity = new DeviceEntity();
 			deviceEntity.setUuid(device.getUuid());
 			deviceEntity.setName(device.getName());
 			deviceEntity.setDevice(device);
-			if (deviceDetails.getRoom() != null)
-				deviceEntity.setRoom(deviceDetails.getRoom().getName());
+			if (deviceDetails.getRoom() != null) {
+//				deviceEntity.setRoom((deviceDetails.getRoom().getName());
+			}
 			if (deviceDetails.getIcon() != null)
 				deviceEntity.setType(deviceDetails.getIcon().getEndpointType());
 			if (deviceEntity.getType() != null)
-				deviceEntitys.put(device.getUuid() + " " + deviceDetails.getUuid(), deviceEntity);
+				deviceEntitys.put(device.getUuid(), deviceEntity);
 
 		}
 
 		return deviceEntitys.toString();
 	}
 
-	public List<DeviceEntity> getDevicesByType(String type) {
-		List<DeviceEntity> devices = new ArrayList<>();
+	public List<Device> getDevicesByType(String type) {
+		List<Device> devices = new ArrayList<>();
 
-		for (DeviceEntity device : deviceEntitys.values()) {
-			if (device.getType().equals(type))
+		for (Device device : this.devices.values()) {
+			if (isRelevantDevice(device)) {
 				devices.add(device);
+			}
 		}
+
+//		for (DeviceEntity device : deviceEntitys.values()) {
+//			if (device.getType().equals(type))
+//				devices.add(device);
+//		}
 
 		return devices;
 	}
@@ -297,11 +307,22 @@ public class ZipatoService {
 	/*
 	 * IF you want to add more relevant attribute types paste here.
 	 */
-	private boolean isRelevantAttribute(Attribute attribute) {
+	public boolean isRelevantAttribute(Attribute attribute) {
 
 		List<String> relevantAttributes = Arrays.asList("LEVEL");
 
 		if (relevantAttributes.contains(attribute.getName())) { // Shutters
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isRelevantDevice(Device device) {
+
+		List<String> relevantAttributes = Arrays.asList("actuator.shutters");
+
+		if (device.getIcon() != null && device.getIcon().getEndpointType() != null
+				&& relevantAttributes.contains(device.getIcon().getEndpointType())) { // Shutters
 			return true;
 		}
 		return false;
