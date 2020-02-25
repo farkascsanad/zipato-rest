@@ -28,6 +28,9 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -38,6 +41,7 @@ import hu.csani.application.model.zipato.Attribute;
 import hu.csani.application.model.zipato.Device;
 import hu.csani.application.model.zipato.DeviceDetails;
 import hu.csani.application.model.zipato.ZipatoResponse;
+import hu.csani.application.schedule.Scheduler;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -45,6 +49,8 @@ import lombok.Getter;
 @Service
 @Data
 public class ZipatoService {
+
+	private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
 
 	public static String BASE_URL = "https://my.zipato.com/zipato-web/v2/";
 
@@ -63,14 +69,17 @@ public class ZipatoService {
 
 	private Map<String, Attribute> attributeEntitys;
 
+	@Autowired
+	HttpService httpService;
+
 	public String generateAuthHeader() throws IOException {
-		HttpZipatoResponse initResponse = httpGET("https://my.zipato.com/zipato-web/v2/user/init");
+		HttpZipatoResponse initResponse = httpService.httpGET("https://my.zipato.com/zipato-web/v2/user/init");
 
 		Gson gson = new Gson();
 		ZipatoResponse init = gson.fromJson(initResponse.getResponse(), ZipatoResponse.class);
 		String token = calculateToken(init.getNonce(), PASSWORD);
 
-		HttpZipatoResponse loginResponse = httpGET(
+		HttpZipatoResponse loginResponse = httpService.httpGET(
 				"https://my.zipato.com/zipato-web/v2/user/login" + "?username=" + USERNAME + "&token=" + token,
 				initResponse.getCookies());
 		login = gson.fromJson(loginResponse.getResponse(), ZipatoResponse.class);
@@ -101,8 +110,10 @@ public class ZipatoService {
 		osw.write("{\"value\":" + value + "}");
 		osw.flush();
 		osw.close();
-		System.err.println(connection.getResponseCode());
-		System.err.println(connection.getResponseMessage());
+//		System.err.println(connection.getResponseCode());
+		log.info("Connection response code: " + connection.getResponseCode() + " message: "
+				+ connection.getResponseMessage());
+//		System.err.println(connection.getResponseMessage());
 		return connection.getResponseCode() + "  " + connection.getResponseMessage();
 	}
 
@@ -110,8 +121,9 @@ public class ZipatoService {
 //		LOGGER.log(Level.INFO, "Init nonce: " + nonce);
 		String sha1Password = sha1(password);
 //		LOGGER.log(Level.INFO, "sha1Password: " + sha1Password);
-		System.err.println(sha1Password);
+//		System.err.println(sha1Password);
 		String token = sha1(nonce + sha1Password);
+		log.info("Token: " + token);
 		return token;
 	}
 
@@ -127,102 +139,28 @@ public class ZipatoService {
 			e.printStackTrace();
 		}
 
-//		System.out.println("The sha1 of \"" + value + "\" is:");
-//		System.out.println(sha1);
-//		System.out.println();
 		return sha1;
-	}
-
-	private HttpZipatoResponse httpGET(String url) {
-		return httpGET(url, null);
-	}
-
-	private HttpZipatoResponse httpGET(String url, List<Cookie> cookies) {
-		/* init client */
-		HttpClient http = null;
-		CookieStore httpCookieStore = new BasicCookieStore();
-		if (cookies != null) {
-			for (Cookie cookie : cookies) {
-				httpCookieStore.addCookie(cookie);
-			}
-		}
-		HttpClientBuilder builder = HttpClientBuilder.create().setDefaultCookieStore(httpCookieStore);
-		http = builder.build();
-		/* do stuff */
-		HttpGet httpRequest = new HttpGet(url);
-		httpRequest.setHeader("Accept", "application/json");
-		httpRequest.setHeader("Content-type", "application/json");
-		HttpZipatoResponse httpResponse = null;
-		ResponseHandler<String> responseHandler = new BasicResponseHandler();
-		String response = "";
-		try {
-			response = http.execute(httpRequest, responseHandler);
-			System.out.println(response);
-		} catch (Throwable error) {
-			throw new RuntimeException(error);
-		}
-
-		/* check cookies */
-		List<Cookie> responseCookies = httpCookieStore.getCookies();
-		return new HttpZipatoResponse(response, responseCookies);
-	}
-
-	private HttpZipatoResponse httpPUT(String url, List<Cookie> cookies, String json)
-			throws ClientProtocolException, IOException {
-
-		CookieStore httpCookieStore = new BasicCookieStore();
-		if (cookies != null) {
-			for (Cookie cookie : cookies) {
-				httpCookieStore.addCookie(cookie);
-			}
-		}
-		CloseableHttpClient httpclient = null;
-		HttpClientBuilder builder = HttpClientBuilder.create().setDefaultCookieStore(httpCookieStore);
-		httpclient = builder.build();
-
-		HttpPut httpPut = new HttpPut(url);
-		httpPut.setHeader("Accept", "application/json");
-		httpPut.setHeader("Content-type", "application/json");
-		StringEntity stringEntity = new StringEntity(json);
-		httpPut.setEntity(stringEntity);
-
-		System.out.println("Executing request " + httpPut.getRequestLine());
-
-		// Create a custom response handler
-		ResponseHandler<String> responseHandler = response -> {
-			int status = response.getStatusLine().getStatusCode();
-			if (status >= 200 && status < 300) {
-				HttpEntity entity = response.getEntity();
-				return entity != null ? EntityUtils.toString(entity) : null;
-			} else {
-				throw new ClientProtocolException("Unexpected response status: " + status);
-			}
-		};
-		String responseBody = httpclient.execute(httpPut, responseHandler);
-		System.out.println("----------------------------------------");
-		System.out.println(responseBody);
-
-		return new HttpZipatoResponse(responseBody, null);
 	}
 
 	public String test() throws IOException {
 
-		HttpZipatoResponse rawResponse = httpGET("https://my.zipato.com/zipato-web/v2/user/init");
+		HttpZipatoResponse rawResponse = httpService.httpGET("https://my.zipato.com/zipato-web/v2/user/init");
 
 		Gson gson = new Gson();
 		ZipatoResponse init = gson.fromJson(rawResponse.getResponse(), ZipatoResponse.class);
 		String token = calculateToken(init.getNonce(), PASSWORD);
 
-		HttpZipatoResponse rawResponse2 = httpGET("https://my.zipato.com/zipato-web/v2/user/login"
+		HttpZipatoResponse rawResponse2 = httpService.httpGET("https://my.zipato.com/zipato-web/v2/user/login"
 				+ "?username=csanad.farkas90@gmail.com" + "&token=" + token, rawResponse.getCookies());
 		System.out.println("FINAL" + rawResponse2.getResponse());
 		System.out.println(init.getJsessionid());
-		System.out.println(httpGET("https://my.zipato.com/zipato-web/v2/thermostats", rawResponse2.getCookies()));
+		System.out.println(
+				httpService.httpGET("https://my.zipato.com/zipato-web/v2/thermostats", rawResponse2.getCookies()));
 		ZipatoResponse login = gson.fromJson(rawResponse2.getResponse(), ZipatoResponse.class);
 		System.out.println(login.getJsessionid());
 		test(login.getJsessionid());
 
-		HttpZipatoResponse httpPUT = httpPUT(
+		HttpZipatoResponse httpPUT = httpService.httpPUT(
 				"https://my.zipato.com/zipato-web/v2/attributes/d0fbf5f6-b391-48b9-8d80-141182f8d83c/value",
 				rawResponse2.getCookies(), "{\"value\":90}");
 		return httpPUT.toString();
@@ -248,8 +186,8 @@ public class ZipatoService {
 //		osw.write("{\"value\":90}");
 		osw.flush();
 		osw.close();
-		System.err.println(connection.getResponseCode());
-		System.err.println(connection.getResponseMessage());
+		log.info("Connection response code: " + connection.getResponseCode() + " message: "
+				+ connection.getResponseMessage());
 	}
 
 	public String refreshAllDevice() throws LoginException {
@@ -257,7 +195,7 @@ public class ZipatoService {
 			throw new LoginException("Please auth first");
 		}
 
-		HttpZipatoResponse rawResponse = httpGET("https://my.zipato.com/zipato-web/v2/devices",
+		HttpZipatoResponse rawResponse = httpService.httpGET("https://my.zipato.com/zipato-web/v2/devices",
 				authenticatedHeader.getCookies());
 
 		Gson gson = new Gson();
@@ -271,7 +209,7 @@ public class ZipatoService {
 
 		deviceEntitys = new HashMap<>();
 		for (Device device : mcArray) {
-			HttpZipatoResponse deviceResponse = httpGET("https://my.zipato.com:443/zipato-web/v2/devices/"
+			HttpZipatoResponse deviceResponse = httpService.httpGET("https://my.zipato.com:443/zipato-web/v2/devices/"
 					+ device.getUuid()
 					+ "?network=false&endpoints=false&type=false&config=false&state=false&icons=true&info=false&descriptor=false&room=true&unsupported=false",
 					authenticatedHeader.getCookies());
@@ -306,6 +244,12 @@ public class ZipatoService {
 		return devices;
 	}
 
+	/**
+	 * Refresh all Attributes from zipato API
+	 * 
+	 * @return List of Attributes
+	 * @throws LoginException If the login wasnt success the function can not run
+	 */
 	public List<Attribute> refreshAllAttribute() throws LoginException {
 		if (authenticatedHeader == null) {
 			throw new LoginException("Please auth first  @  ... /force-auth");
@@ -315,25 +259,27 @@ public class ZipatoService {
 					"Devices list is NULL please refresh all devices first @ ... /devices/refresh");
 		}
 
-		HttpZipatoResponse rawResponse = httpGET("https://my.zipato.com:443/zipato-web/v2/attributes",
+		HttpZipatoResponse rawResponse = httpService.httpGET("https://my.zipato.com:443/zipato-web/v2/attributes",
 				authenticatedHeader.getCookies());
 
 		Gson gson = new Gson();
 
 		Attribute[] mcArray = gson.fromJson(rawResponse.getResponse(), Attribute[].class);
-		
+
 		List<Attribute> attributeList = Arrays.asList(mcArray);
 
-		for (Attribute attribute : attributeList) {
-			if(isRelevantAttribute(attribute)) {
+		for (int i = 0; i < attributeList.size(); i++) {
+			Attribute attribute = attributeList.get(i);
+			if (!isRelevantAttribute(attribute)) {
 				continue;
 			}
-			HttpZipatoResponse attributeResponse = httpGET("https://my.zipato.com:443/zipato-web/v2/attributes/"
-					+ attribute.getUuid()
-					+ "?network=false&device=true&endpoint=false&clusterEndpoint=false&definition=false&config=false&room=false&icons=false&value=true&parent=false&children=false&full=false&type=false",
+			HttpZipatoResponse attributeResponse = httpService.httpGET(
+					"https://my.zipato.com:443/zipato-web/v2/attributes/" + attribute.getUuid()
+							+ "?network=false&device=true&endpoint=false&clusterEndpoint=false&definition=false&config=false&room=false&icons=false&value=true&parent=false&children=false&full=false&type=false",
 					authenticatedHeader.getCookies());
 			Attribute attributeDetails = gson.fromJson(attributeResponse.getResponse(), Attribute.class);
-			attribute = attributeDetails;
+			// attribute = attributeDetails;
+			attributeList.set(i, attributeDetails); // why the heck is not working the reference update????
 
 		}
 
@@ -348,8 +294,14 @@ public class ZipatoService {
 		return attributeList;
 	}
 
+	/*
+	 * IF you want to add more relevant attribute types paste here.
+	 */
 	private boolean isRelevantAttribute(Attribute attribute) {
-		if(attribute.getName().equals("LEVEL")) {  // Shutters
+
+		List<String> relevantAttributes = Arrays.asList("LEVEL");
+
+		if (relevantAttributes.contains(attribute.getName())) { // Shutters
 			return true;
 		}
 		return false;
