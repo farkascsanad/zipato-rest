@@ -11,9 +11,7 @@ import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
-
 
 public class MainView extends AppLayout implements BeforeEnterObserver {
 
@@ -21,18 +19,18 @@ public class MainView extends AppLayout implements BeforeEnterObserver {
 	private Map<Class<? extends Component>, Tab> navigationTargetToTab = new HashMap<>();
 
 	public MainView() {
-		
+
 		Image img = new Image("https://i.imgur.com/GPpnszs.png", "Vaadin Logo");
-        img.setHeight("44px");
-        addToNavbar(new DrawerToggle(), img);
-		
+		img.setHeight("44px");
+		addToNavbar(new DrawerToggle(), img);
+
 		addMenuTab("Main", DefaultView.class);
 		addMenuTab("Admin", AdminView.class);
-		addMenuTab("Dashboard", DashboardView.class);
+		addMenuTab("Device", DeviceView.class);
+		addMenuTab("Schedule", ScheduleView.class);
 		tabs.setOrientation(Tabs.Orientation.VERTICAL);
 		addToDrawer(tabs);
 //		addToNavbar(new DrawerToggle());
-		
 
 	}
 

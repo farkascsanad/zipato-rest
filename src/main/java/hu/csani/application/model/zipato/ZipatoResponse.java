@@ -19,17 +19,13 @@ public class ZipatoResponse {
 	@SerializedName("success")
 	@Expose
 	private Boolean success;
-	
+
 	@SerializedName("jsessionid")
 	@Expose
 	private String jsessionid;
-	
+
 	@SerializedName("nonce")
 	@Expose
 	private String nonce;
-
-	
-	
-	
 
 }

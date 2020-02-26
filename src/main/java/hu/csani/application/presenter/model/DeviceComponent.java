@@ -2,7 +2,7 @@ package hu.csani.application.presenter.model;
 
 import java.util.List;
 
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -12,7 +12,7 @@ import hu.csani.application.model.zipato.Device;
 import lombok.Data;
 
 @Data
-public class DeviceView extends HorizontalLayout {
+public class DeviceComponent extends HorizontalLayout {
 
 //	private HorizontalLayout level1;
 	private Device device;
@@ -20,25 +20,33 @@ public class DeviceView extends HorizontalLayout {
 	private TextField descriptionLabel = new TextField();
 	private TextField nameLabel = new TextField();
 
-	public DeviceView(Device device) {
+	private Attribute attribute;
+
+	public DeviceComponent(Device device) {
 		this.device = device;
 
 		nameLabel.setLabel("Name");
 		descriptionLabel.setLabel("Description");
 
+		add(nameLabel);
+
 		nameLabel.setReadOnly(true);
-		nameLabel.setValue(device.getName());
+		nameLabel.setValue(device.getConfig().getName()); // TODO
 
 		descriptionLabel.setReadOnly(true);
 //		descriptionLabel.setValue(device.getDescription());
 
 		List<Attribute> deviceAttributes = device.getDeviceAttributes();
 
-		VerticalLayout verticalLayout = new VerticalLayout();
-		verticalLayout.setHeight("100%");
-		verticalLayout.setWidth(null);
+//		VerticalLayout verticalLayout = new VerticalLayout();
+//		verticalLayout.setHeight("100%");
+//		verticalLayout.setWidth(null);
 
-		for (Attribute attribute : deviceAttributes) {
+//		for (Attribute attribute : deviceAttributes) {
+
+		if (deviceAttributes.size() > 0) {
+			attribute = deviceAttributes.get(0); // Only 1 attribute is important.
+
 			TextField nameAttribute = new TextField();
 			TextField valueAttribute = new TextField();
 			nameAttribute.setLabel("Name");
@@ -47,17 +55,20 @@ public class DeviceView extends HorizontalLayout {
 			nameAttribute.setValue(attribute.getName());
 
 			valueAttribute.setValue("" + attribute.getValue().getValue());
-			HorizontalLayout horizontalLayout = new HorizontalLayout(/*nameAttribute,*/ valueAttribute);
-			
+
+			Label uuidLabel = new Label(attribute.getUuid());
+			uuidLabel.setVisible(false);
+
 			nameAttribute.setReadOnly(true);
 			valueAttribute.setReadOnly(true);
-			
-			horizontalLayout.setSpacing(true);
-			verticalLayout.add(horizontalLayout);
 
+			add(nameAttribute, valueAttribute);
 		}
 
-		add(nameLabel, verticalLayout);
+//		horizontalLayout.setSpacing(true);
+//		verticalLayout.add(horizontalLayout);
+
+//		}
 
 //		grid.removeColumnByKey("id");
 

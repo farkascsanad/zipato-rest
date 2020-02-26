@@ -17,23 +17,44 @@
 package hu.csani.application.schedule;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import lombok.Data;
+
 @Component
+@Data
 public class Scheduler {
 
 	private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
+	private Map<LocalTime, List<Task>> tasks = new HashMap<>();
+
+	private ExecutorService executor = Executors.newFixedThreadPool(5);
+
 	@Scheduled(cron = "0 * * * * *")
 	public void reportCurrentTime() {
 		log.info("The time is now {}", dateFormat.format(new Date()));
+		List<Task> list = tasks.get(LocalTime.now());
+		if (list != null) {
+			for (Task task : list) {
+				executor.execute(task);
+				log.info("Task executed: " + task);
+			}
+		}
 	}
 
 }

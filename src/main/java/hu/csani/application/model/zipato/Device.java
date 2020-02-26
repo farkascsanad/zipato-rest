@@ -22,37 +22,72 @@ public class Device {
 
 	@SerializedName("link")
 	@Expose
-	private String link;
-	@SerializedName("name")
+	public String link;
+	@SerializedName("config")
 	@Expose
-	private String name;
-	@SerializedName("uuid")
+	public Config config;
+	@SerializedName("endpoints")
 	@Expose
-	private String uuid;
-	@SerializedName("description")
-	@Expose
-	private String description;
-	@SerializedName("room")
-	@Expose
-	private Object room;
-	@SerializedName("tags")
-	@Expose
-	private List<String> tags = null;
+	public List<Endpoint> endpoints = null;
 	@SerializedName("icon")
 	@Expose
-	private Icon icon;
-	@SerializedName("showIcon")
+	public Icon icon;
+	@SerializedName("room")
 	@Expose
-	private Boolean showIcon;
+	public Object room;
+//	@SerializedName("showIcon")
+//	@Expose
+//	public Boolean showIcon;
 	@SerializedName("templateId")
 	@Expose
-	private String templateId;
+	public String templateId;
 	@SerializedName("userIcon")
 	@Expose
-	private Object userIcon;
-	
+	public Icon userIcon;
+	@SerializedName("uuid")
+	@Expose
+	public String uuid;
+
+//	@SerializedName("link")
+//	@Expose
+//	private String link;
+//	@SerializedName("name")
+//	@Expose
+//	private String name;
+//	@SerializedName("uuid")
+//	@Expose
+//	private String uuid;
+//	@SerializedName("description")
+//	@Expose
+//	private String description;
+//	@SerializedName("room")
+//	@Expose
+//	private Room room;
+//	@SerializedName("tags")
+//	@Expose
+//	private List<String> tags = null;
+//	@SerializedName("icon")
+//	@Expose
+//	private Icon icon;
+//	@SerializedName("showIcon")
+//	@Expose
+//	private Boolean showIcon;
+//	@SerializedName("templateId")
+//	@Expose
+//	private String templateId;
+//	@SerializedName("userIcon")
+//	@Expose
+//	private Object userIcon;
+//
 	@SerializedName("device_attributes")
 	@Expose
 	private List<Attribute> deviceAttributes = new ArrayList<>();
+//
+//	@SerializedName("config")
+//	@Expose
+//	public Config config;
+//	@SerializedName("endpoints")
+//	@Expose
+//	public List<Endpoint> endpoints = null;
 
 }

@@ -34,6 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import hu.csani.application.model.dao.DeviceEntity;
 import hu.csani.application.model.http.HttpZipatoResponse;
@@ -63,7 +67,7 @@ public class ZipatoService {
 
 	private Map<String, Device> devices;
 
-	private Map<String, DeviceEntity> deviceEntitys;
+//	private Map<String, DeviceEntity> deviceEntitys;
 
 	private Map<String, Attribute> attributeEntitys;
 
@@ -199,42 +203,55 @@ public class ZipatoService {
 		HttpZipatoResponse rawResponse = httpService.httpGET("https://my.zipato.com/zipato-web/v2/devices",
 				authenticatedHeader.getCookies());
 
+		devices = new HashMap<>();
 		Gson gson = new Gson();
 
-		Device[] mcArray = gson.fromJson(rawResponse.getResponse(), Device[].class);
-
-		devices = new HashMap<>();
-		for (Device device : mcArray) {
-			devices.put(device.getUuid(), device);
+		JsonArray array = gson.fromJson(rawResponse.getResponse(), JsonArray.class);
+		for (JsonElement jsonElement : array) {
+			JsonObject asJsonObject = jsonElement.getAsJsonObject();
+			String uuid = asJsonObject.get("uuid").getAsString();
+			Device device = new Device();
+			device.setUuid(uuid);
+			if (uuid.equals("3031ba41-4fef-4232-9c66-28c3c4134583"))
+			devices.put(uuid, device);
 		}
 
-		deviceEntitys = new HashMap<>();
+//		Device[] mcArray = gson.fromJson(rawResponse.getResponse(), Device[].class);
+
+//		for (Device device : mcArray) {
+//			devices.put(device.getUuid(), device);
+//		}
+
+//		deviceEntitys = new HashMap<>();
 		for (Device device : devices.values()) {
-			HttpZipatoResponse deviceResponse = httpService.httpGET("https://my.zipato.com:443/zipato-web/v2/devices/"
-					+ device.getUuid()
-					+ "?network=false&endpoints=false&type=false&config=false&state=false&icons=true&info=false&descriptor=false&room=true&unsupported=false",
-					authenticatedHeader.getCookies());
+			HttpZipatoResponse deviceResponse = httpService
+					.httpGET(
+							"https://my.zipato.com:443/zipato-web/v2/devices/" + device.getUuid()
+									+ "?endpoints=true&config=true&icons=true&room=true",
+							authenticatedHeader.getCookies());
 			Device deviceDetails = gson.fromJson(deviceResponse.getResponse(), Device.class);
 
 			device = gson.fromJson(deviceResponse.getResponse(), Device.class);
 
+			devices.put(device.getUuid(), deviceDetails);
+
 			// devicesDetails.put(device.getUuid(), deviceDetails);
 
-			DeviceEntity deviceEntity = new DeviceEntity();
-			deviceEntity.setUuid(device.getUuid());
-			deviceEntity.setName(device.getName());
-			deviceEntity.setDevice(device);
-			if (deviceDetails.getRoom() != null) {
-//				deviceEntity.setRoom((deviceDetails.getRoom().getName());
-			}
-			if (deviceDetails.getIcon() != null)
-				deviceEntity.setType(deviceDetails.getIcon().getEndpointType());
-			if (deviceEntity.getType() != null)
-				deviceEntitys.put(device.getUuid(), deviceEntity);
+//			DeviceEntity deviceEntity = new DeviceEntity();
+//			deviceEntity.setUuid(device.getUuid());
+////			deviceEntity.setName(device.getName());//TODO!
+//			deviceEntity.setDevice(device);
+//			if (deviceDetails.getRoom() != null) {
+////				deviceEntity.setRoom((deviceDetails.getRoom().getName());
+//			}
+//			if (deviceDetails.getIcon() != null)
+//				deviceEntity.setType(deviceDetails.getIcon().getEndpointType());
+//			if (deviceEntity.getType() != null)
+//				deviceEntitys.put(device.getUuid(), deviceEntity);
 
 		}
 
-		return deviceEntitys.toString();
+		return devices.toString();
 	}
 
 	public List<Device> getDevicesByType(String type) {
@@ -272,7 +289,9 @@ public class ZipatoService {
 		HttpZipatoResponse rawResponse = httpService.httpGET("https://my.zipato.com:443/zipato-web/v2/attributes",
 				authenticatedHeader.getCookies());
 
-		Gson gson = new Gson();
+		GsonBuilder builder = new GsonBuilder();
+		builder.setExclusionStrategies(new HiddenAnnotationExclusionStrategy());
+		Gson gson = builder.create();
 
 		Attribute[] mcArray = gson.fromJson(rawResponse.getResponse(), Attribute[].class);
 
@@ -287,6 +306,7 @@ public class ZipatoService {
 					"https://my.zipato.com:443/zipato-web/v2/attributes/" + attribute.getUuid()
 							+ "?network=false&device=true&endpoint=false&clusterEndpoint=false&definition=false&config=false&room=false&icons=false&value=true&parent=false&children=false&full=false&type=false",
 					authenticatedHeader.getCookies());
+			System.out.println(attributeResponse.getResponse());
 			Attribute attributeDetails = gson.fromJson(attributeResponse.getResponse(), Attribute.class);
 			// attribute = attributeDetails;
 			attributeList.set(i, attributeDetails); // why the heck is not working the reference update????

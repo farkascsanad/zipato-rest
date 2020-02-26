@@ -3,6 +3,7 @@ package hu.csani.application.model.zipato;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import hu.csani.application.util.Hidden;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Hidden
 public class Room {
 
 	@SerializedName("link")
