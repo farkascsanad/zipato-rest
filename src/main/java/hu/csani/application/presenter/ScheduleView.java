@@ -72,7 +72,7 @@ public class ScheduleView extends VerticalLayout {
 	private void addSchedule(DeviceComponent deviceComponent, String newValue, LocalTime value) {
 		Map<LocalTime, List<Task>> tasks = schedulder.getTasks();
 //		List<Task> list = tasks.get(value);
-		Task task = new Task();
+		Task task = new Task(zipatoService);
 		task.setAttribute(deviceComponent.getAttribute());
 		task.setTime(value);
 		task.setNewValue(newValue);

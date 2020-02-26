@@ -18,7 +18,10 @@ package hu.csani.application.schedule;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +51,7 @@ public class Scheduler {
 	@Scheduled(cron = "0 * * * * *")
 	public void reportCurrentTime() {
 		log.info("The time is now {}", dateFormat.format(new Date()));
-		List<Task> list = tasks.get(LocalTime.now());
+		List<Task> list = tasks.get(LocalTime.now().truncatedTo(ChronoUnit.MINUTES));
 		if (list != null) {
 			for (Task task : list) {
 				executor.execute(task);

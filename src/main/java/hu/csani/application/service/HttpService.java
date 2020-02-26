@@ -17,12 +17,17 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import hu.csani.application.model.http.HttpZipatoResponse;
+import hu.csani.application.schedule.Scheduler;
 
 @Service
 public class HttpService {
+
+	private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
 
 	public HttpZipatoResponse httpGET(String url) {
 		return httpGET(url, null);
@@ -77,7 +82,9 @@ public class HttpService {
 		StringEntity stringEntity = new StringEntity(json);
 		httpPut.setEntity(stringEntity);
 
-		System.out.println("Executing request " + httpPut.getRequestLine());
+		log.info(url);
+		log.info(json);
+//		System.out.println("Executing request " + httpPut.getRequestLine());
 
 		// Create a custom response handler
 		ResponseHandler<String> responseHandler = response -> {
