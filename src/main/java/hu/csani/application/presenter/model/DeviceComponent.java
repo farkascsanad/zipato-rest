@@ -36,7 +36,7 @@ public class DeviceComponent extends HorizontalLayout {
 		descriptionLabel.setReadOnly(true);
 //		descriptionLabel.setValue(device.getDescription());
 
-		List<Attribute> deviceAttributes = device.getDeviceAttributes();
+//		List<Attribute> deviceAttributes = device.getDeviceAttributes();
 
 //		VerticalLayout verticalLayout = new VerticalLayout();
 //		verticalLayout.setHeight("100%");
@@ -44,26 +44,26 @@ public class DeviceComponent extends HorizontalLayout {
 
 //		for (Attribute attribute : deviceAttributes) {
 
-		if (deviceAttributes.size() > 0) {
-			attribute = deviceAttributes.get(0); // Only 1 attribute is important.
+//		if (deviceAttributes.size() > 0) {
+		attribute = device.getDeviceAttribute(); // Only 1 attribute is important.
 
-			TextField nameAttribute = new TextField();
-			TextField valueAttribute = new TextField();
-			nameAttribute.setLabel("Name");
-			valueAttribute.setLabel("Value");
+		TextField nameAttribute = new TextField();
+		TextField valueAttribute = new TextField();
+		nameAttribute.setLabel("Name");
+		valueAttribute.setLabel("Value");
 
-			nameAttribute.setValue(attribute.getName());
+		nameAttribute.setValue(attribute.getName());
 
-			valueAttribute.setValue("" + attribute.getValue().getValue());
+		valueAttribute.setValue("" + attribute.getValue().getValue());
 
-			Label uuidLabel = new Label(attribute.getUuid());
-			uuidLabel.setVisible(false);
+		Label uuidLabel = new Label(attribute.getUuid());
+		uuidLabel.setVisible(false);
 
-			nameAttribute.setReadOnly(true);
-			valueAttribute.setReadOnly(true);
+		nameAttribute.setReadOnly(true);
+		valueAttribute.setReadOnly(true);
 
-			add(nameAttribute, valueAttribute);
-		}
+		add(nameAttribute, valueAttribute);
+//		}
 
 //		horizontalLayout.setSpacing(true);
 //		verticalLayout.add(horizontalLayout);

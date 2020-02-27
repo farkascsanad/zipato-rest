@@ -317,7 +317,7 @@ public class ZipatoService {
 			if (attirbute.getDevice() != null) {
 				Device device = devices.get(attirbute.getDevice().getUuid());
 				if (device != null)
-					device.getDeviceAttributes().add(attirbute);
+					device.setDeviceAttribute(attirbute);
 			}
 		}
 

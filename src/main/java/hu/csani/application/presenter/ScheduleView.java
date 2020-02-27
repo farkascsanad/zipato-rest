@@ -1,5 +1,6 @@
 package hu.csani.application.presenter;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -7,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import com.vaadin.flow.component.timepicker.TimePicker;
 import com.vaadin.flow.router.Route;
 
 import hu.csani.application.model.zipato.Device;
+import hu.csani.application.presenter.model.DayPickerComponent;
 import hu.csani.application.presenter.model.DeviceComponent;
 import hu.csani.application.schedule.Scheduler;
 import hu.csani.application.schedule.Task;
@@ -61,21 +64,25 @@ public class ScheduleView extends VerticalLayout {
 				timePicker.setPlaceholder("eg: 10:05");
 				TextField textField = new TextField("New Value");
 
-				deviceComponent.add(textField, timePicker, new Button("Add",
-						e -> addSchedule(deviceComponent, textField.getValue(), timePicker.getValue())));
-				verticalLayout.add(deviceComponent);
+				DayPickerComponent dayPicker = new DayPickerComponent();
+
+				deviceComponent.add(textField, timePicker);
+				verticalLayout.add(deviceComponent, dayPicker, new Button("Add", e -> addSchedule(deviceComponent,
+						textField.getValue(), timePicker.getValue(), dayPicker.getPickedDays())));
 			}
 		}
 		add(verticalLayout);
 	}
 
-	private void addSchedule(DeviceComponent deviceComponent, String newValue, LocalTime value) {
+	private void addSchedule(DeviceComponent deviceComponent, String newValue, LocalTime value,
+			Set<DayOfWeek> runingDays) {
 		Map<LocalTime, List<Task>> tasks = schedulder.getTasks();
 //		List<Task> list = tasks.get(value);
 		Task task = new Task(zipatoService);
 		task.setAttribute(deviceComponent.getAttribute());
 		task.setTime(value);
 		task.setNewValue(newValue);
+		task.setRuningDays(runingDays);
 		if (!tasks.containsKey(value))
 			tasks.put(value, Arrays.asList(task));
 		else {

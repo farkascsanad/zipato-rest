@@ -81,7 +81,7 @@ public class Device {
 //
 	@SerializedName("device_attributes")
 	@Expose
-	private List<Attribute> deviceAttributes = new ArrayList<>();
+	private Attribute deviceAttribute;
 //
 //	@SerializedName("config")
 //	@Expose

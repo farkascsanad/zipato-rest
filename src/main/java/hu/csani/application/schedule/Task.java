@@ -1,7 +1,12 @@
 package hu.csani.application.schedule;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.http.client.ClientProtocolException;
 import org.slf4j.Logger;
@@ -18,13 +23,14 @@ import lombok.Data;
 @Data
 public class Task implements Runnable {
 
-	
 	private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
-	
+
 	private ZipatoService zipatoService;
 
 	private LocalTime time;
 	private Attribute attribute;
+
+	private Set<DayOfWeek> runingDays;
 
 	private Object newValue;
 
@@ -34,6 +40,11 @@ public class Task implements Runnable {
 
 	@Override
 	public void run() {
+
+		DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+		if (!runingDays.contains(dayOfWeek)) {
+			return;
+		}
 
 		try {
 			zipatoService.getHttpService().httpPUT(
