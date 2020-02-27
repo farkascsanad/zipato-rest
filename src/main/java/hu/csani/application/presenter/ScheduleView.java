@@ -44,17 +44,25 @@ public class ScheduleView extends VerticalLayout {
 	@Autowired
 	private Scheduler schedulder;
 
+	private VerticalLayout scheduldedDevices;
+
 	public ScheduleView() {
 		add(new Text("Cica to MainView."));
 
 		add(new Button("Refresh", e -> refresh()));
+		
+		scheduldedDevices = new VerticalLayout();
+		
+		add(scheduldedDevices);
 
 	}
 
 	private void refresh() {
+
 		Collection<Device> devices = zipatoService.getDevices().values();
 
-		VerticalLayout verticalLayout = new VerticalLayout();
+		scheduldedDevices.removeAll();
+		
 		for (Device device : devices) {
 			if (zipatoService.isRelevantDevice(device)) {
 				DeviceComponent deviceComponent = new DeviceComponent(device);
@@ -67,11 +75,11 @@ public class ScheduleView extends VerticalLayout {
 				DayPickerComponent dayPicker = new DayPickerComponent();
 
 				deviceComponent.add(textField, timePicker);
-				verticalLayout.add(deviceComponent, dayPicker, new Button("Add", e -> addSchedule(deviceComponent,
+				scheduldedDevices.add(deviceComponent, dayPicker, new Button("Add", e -> addSchedule(deviceComponent,
 						textField.getValue(), timePicker.getValue(), dayPicker.getPickedDays())));
 			}
 		}
-		add(verticalLayout);
+	
 	}
 
 	private void addSchedule(DeviceComponent deviceComponent, String newValue, LocalTime value,
