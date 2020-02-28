@@ -16,6 +16,7 @@
 
 package hu.csani.application.schedule;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -29,11 +30,15 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.security.auth.login.LoginException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import hu.csani.application.service.ZipatoService;
 import lombok.Data;
 
 @Component
@@ -48,16 +53,47 @@ public class Scheduler {
 
 	private ExecutorService executor = Executors.newFixedThreadPool(5);
 
+	// This lock helps to avoid reauthentication and run job at the same time
+	private final Object lock = new Object();
+
+	@Autowired
+	private ZipatoService zipatoService;
+
 	@Scheduled(cron = "0 * * * * *")
 	public void reportCurrentTime() {
-		log.info("The time is now {}", dateFormat.format(new Date()));
-		List<Task> list = tasks.get(LocalTime.now().truncatedTo(ChronoUnit.MINUTES));
-		if (list != null) {
-			for (Task task : list) {
-				executor.execute(task);
-				log.info("Task executed: " + task);
+
+		synchronized (lock) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			List<Task> list = tasks.get(LocalTime.now().truncatedTo(ChronoUnit.MINUTES));
+			log.info("Task todo this minute: " + (list != null ? list.size() : 0));
+			if (list != null) {
+				for (Task task : list) {
+					executor.execute(task);
+					log.info("Task executed: " + task);
+				}
 			}
 		}
+	}
+
+	// Every 5 min the this schedulder renew the credentials
+	@Scheduled(cron = "0 */5 * * * *")
+	public void updateCredentials() {
+
+		synchronized (lock) {
+
+			try {
+				zipatoService.generateAuthHeader();
+				log.info("Re-atuh success {}", dateFormat.format(new Date()));
+			} catch (LoginException | IOException e) {
+//				e.printStackTrace();
+			}
+		}
+
 	}
 
 }
