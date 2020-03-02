@@ -212,7 +212,7 @@ public class ZipatoService {
 			String uuid = asJsonObject.get("uuid").getAsString();
 			Device device = new Device();
 			device.setUuid(uuid);
-			if (uuid.equals("3031ba41-4fef-4232-9c66-28c3c4134583"))
+//			if (uuid.equals("3031ba41-4fef-4232-9c66-28c3c4134583"))
 			devices.put(uuid, device);
 		}
 

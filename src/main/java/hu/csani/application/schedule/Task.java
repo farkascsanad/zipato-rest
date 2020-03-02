@@ -30,7 +30,7 @@ public class Task implements Runnable {
 	private LocalTime time;
 	private Attribute attribute;
 
-	private Set<DayOfWeek> runingDays;
+//	private Set<DayOfWeek> runingDays;
 
 	private Object newValue;
 
@@ -41,10 +41,10 @@ public class Task implements Runnable {
 	@Override
 	public void run() {
 
-		DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
-		if (!runingDays.contains(dayOfWeek)) {
-			return;
-		}
+//		DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+//		if (!runingDays.contains(dayOfWeek)) {
+//			return;
+//		}
 
 		try {
 			zipatoService.getHttpService().httpPUT(
@@ -55,4 +55,11 @@ public class Task implements Runnable {
 		}
 
 	}
+
+	@Override
+	public String toString() {
+		return "Task [time=" + time + ", attribute=" + attribute + ", newValue=" + newValue + "]";
+	}
+	
+	
 }

@@ -21,6 +21,7 @@ public class DayPickerComponent extends HorizontalLayout {
 		for (DayOfWeek d : DayOfWeek.values()) {
 			Checkbox checkbox = new Checkbox();
 			checkbox.setLabel(d.name());
+			checkbox.setValue(true);
 			checkbox.addValueChangeListener(event -> updatePickedDays(checkbox));
 			add(checkbox);
 		}

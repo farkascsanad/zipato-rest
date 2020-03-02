@@ -18,6 +18,7 @@ package hu.csani.application.schedule;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -27,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -49,7 +51,7 @@ public class Scheduler {
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-	private Map<LocalTime, List<Task>> tasks = new HashMap<>();
+	private Map<DayTime, Set<Task>> tasks = new HashMap<>();
 
 	private ExecutorService executor = Executors.newFixedThreadPool(5);
 
@@ -63,13 +65,9 @@ public class Scheduler {
 	public void reportCurrentTime() {
 
 		synchronized (lock) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			List<Task> list = tasks.get(LocalTime.now().truncatedTo(ChronoUnit.MINUTES));
+			LocalTime truncatedTo = LocalTime.now().truncatedTo(ChronoUnit.MINUTES);
+			DayTime key = new DayTime( LocalDate.now().getDayOfWeek(),truncatedTo);
+			Set<Task> list = tasks.get(key);
 			log.info("Task todo this minute: " + (list != null ? list.size() : 0));
 			if (list != null) {
 				for (Task task : list) {
