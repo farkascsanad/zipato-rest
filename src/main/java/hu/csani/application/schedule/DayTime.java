@@ -16,6 +16,7 @@ public class DayTime {
 	public DayTime(DayOfWeek dayOfWeek, LocalTime time) {
 		this.dayOfWeek = dayOfWeek;
 		this.time = time;
+		//Test
 	}
 
 	@Override
