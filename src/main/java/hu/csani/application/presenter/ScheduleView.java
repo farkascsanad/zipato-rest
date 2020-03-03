@@ -93,22 +93,28 @@ public class ScheduleView extends VerticalLayout {
 		task.setTime(value);
 		task.setNewValue(newValue);
 		for (DayOfWeek dayofWeek : runingDays) {
+
 			DayTime key = new DayTime(dayofWeek, value);
-			if (!tasks.containsKey(key)) {
-				Set<Task> set = new HashSet<>();
-				set.add(task);
-				tasks.put(key, set);
-			} else {
-				Set<Task> list = tasks.get(key);
-				list.add(task);
-				tasks.put(key, list);
-			}
+			System.out.println(key);
+			
+			tasks.computeIfAbsent(key, k -> new HashSet<>()).add(task);
+			
+//			if (!tasks.containsKey(key)) {
+//				Set<Task> set = new HashSet<>();
+//				set.add(task);
+//				tasks.put(key, set);
+//			} else {
+//				Set<Task> set = tasks.get(key);
+//				set.add(task);
+//				tasks.put(key, set);
+//			}
 		}
 		for (Set<Task> t : tasks.values()) {
 			log.info(t.toString());
 		}
 
-		Notification notification = new Notification("Task added" + runingDays + " " + value, 3000);
+		Notification notification = new Notification("Task added" + runingDays + " " + value + " " + tasks.size(),
+				3000);
 		notification.setPosition(Position.MIDDLE);
 		notification.open();
 		log.info("Task added: " + task);
